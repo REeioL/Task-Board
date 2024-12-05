@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBoard</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+
+    <div class="taskboard">
+        
+        <header>
+            <h1>TaskBoard</h1>
+            <div class="user-controls">
+                <button id="toggle-theme">Dark Mode</button>
+            </div>
+        </header>
+
+
+        <div class="board-selection">
+            <label for="boards">Selecione um Quadro:</label>
+            <select id="boards">
+                <option value="">Selecione</option>
+            </select>
+        </div>
+
+
+        <div class="board-container">
+            <button id="add-column">Nova Coluna</button>
+            <div id="columns" class="columns">
+
+            </div>
+        </div>
+    </div>
+
+    <script src="taskBoard.js"></script>
+</body>
+</html>
