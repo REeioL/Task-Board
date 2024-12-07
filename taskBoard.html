@@ -4,36 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskBoard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
 
     <div class="taskboard">
         
+        
         <header>
             <h1>TaskBoard</h1>
+            <div class="d-flex align-items-center ms-auto">
+                <span id="userName" class="text-white me-3"></span>
+                <button id="logoutButton" class="btn btn-outline-light">Sair</button>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="boardsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Selecionar Board
+                </button>
+                <ul class="dropdown-menu dropdown-scroll" id="boardsList" aria-labelledby="boardsDropdown">
+                </ul>
+            </div>
+
             <div class="user-controls">
                 <button id="toggle-theme">Dark Mode</button>
             </div>
+            
         </header>
 
+        <h2 id="boardTitle"></h2>
 
-        <div class="board-selection">
-            <label for="boards">Selecione um Quadro:</label>
-            <select id="boards">
-                <option value="">Selecione</option>
-            </select>
-        </div>
+        <div class="container">
+            
+            <div id="board" class="mt-4"></div>
+          </div>
+          
+     </div>
 
-
-        <div class="board-container">
-            <button id="add-column">Nova Coluna</button>
-            <div id="columns" class="columns">
-
-            </div>
-        </div>
-    </div>
-
-    <script src="taskBoard.js"></script>
+    <script type="module" src="./scripts/pages/taskBoard.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,20 +1,12 @@
-// Referências aos elementos principais
+import { API_BASE_URL } from "../../config/apiConfig.js";
+import { getFromLocalStorage } from "../utils/storage.js";
+
+const boardsList = document.getElementById("boardsList");
+const userNameSpan = document.getElementById("userName");
+const logoutButton = document.getElementById("logoutButton");
+const boardTitle = document.getElementById("boardTitle");
+const boardLayout = document.getElementById("board");
 const toggleThemeBtn = document.getElementById("toggle-theme");
-const boardsDropdown = document.getElementById("boards");
-const columnsContainer = document.getElementById("columns");
-const addColumnBtn = document.getElementById("add-column");
-
-// Dados simulados (substituir por chamadas à API)
-const mockBoards = [
-    { id: 1, name: "Projeto 1" },
-    { id: 2, name: "Projeto 2" },
-];
-
-const mockColumns = [
-    { id: 1, name: "To Do", tasks: ["Task 1", "Task 2"] },
-    { id: 2, name: "In Progress", tasks: ["Task 3"] },
-    { id: 3, name: "Done", tasks: [] },
-];
 
 // Alternar tema (Dark/Light)
 toggleThemeBtn.addEventListener("click", () => {
@@ -23,69 +15,131 @@ toggleThemeBtn.addEventListener("click", () => {
         document.body.classList.contains("dark-mode")
             ? "Light Mode"
             : "Dark Mode";
+
+            localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
 });
 
+function loadTheme() {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
+        toggleThemeBtn.textContent = "Light Mode";
+    } else {
+        toggleThemeBtn.textContent = "Dark Mode";
+    }
+}
+
+loadTheme();
+
 // Carregar Quadros
-function loadBoards() {
-    mockBoards.forEach((board) => {
-        const option = document.createElement("option");
-        option.value = board.id;
-        option.textContent = board.name;
-        boardsDropdown.appendChild(option);
-    });
+async function loadBoards() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Boards`);
+        if (!response.ok) {
+            throw new Error("Erro ao carregar boards");
+        }
+        const boards = await response.json();
+        populateBoardsDropdown(boards);
+    } catch (error) {
+        console.error("Erro ao carregar boards:", error);
+    }
 }
 
 // Selecionar um Quadro
-boardsDropdown.addEventListener("change", (event) => {
-    const selectedBoardId = event.target.value;
-    if (selectedBoardId) {
-        loadColumns(mockColumns); // Chamada simulada
-    }
-});
-
-// Carregar Colunas e Tarefas
-function loadColumns(columns) {
-    columnsContainer.innerHTML = ""; // Limpa o container
-    columns.forEach((column) => {
-        const columnElement = document.createElement("div");
-        columnElement.classList.add("column");
-
-        // Título da coluna
-        const columnTitle = document.createElement("h2");
-        columnTitle.textContent = column.name;
-        columnElement.appendChild(columnTitle);
-
-        // Tarefas
-        column.tasks.forEach((task) => {
-            const taskElement = document.createElement("div");
-            taskElement.classList.add("task");
-            taskElement.textContent = task;
-            columnElement.appendChild(taskElement);
-        });
-
-        // Botão para nova tarefa
-        const addTaskBtn = document.createElement("button");
-        addTaskBtn.textContent = "Nova Tarefa";
-        addTaskBtn.addEventListener("click", () => {
-            const newTask = prompt("Digite o nome da nova tarefa:");
-            if (newTask) {
-                addTaskToColumn(column.id, newTask); // Simulação
-            }
-        });
-
-        columnElement.appendChild(addTaskBtn);
-        columnsContainer.appendChild(columnElement);
+function populateBoardsDropdown(boards) {
+    
+    boards.forEach((board) => {
+        const listItem = document.createElement("li");
+        listItem.innerHTML = `<a class="dropdown-item" id="dropdown-item" value="${board.Id}">${board.Name}</a>`;
+        listItem.addEventListener("click", (event) => {
+            // console.log(board.Id)
+            boardTitle.innerHTML = event.target.innerHTML;
+            loadBoard(board.Id);
+        })
+        boardsList.appendChild(listItem);
     });
 }
 
-// Adicionar Tarefa à Coluna
-function addTaskToColumn(columnId, taskName) {
-    const column = mockColumns.find((col) => col.id === columnId);
-    if (column) {
-        column.tasks.push(taskName);
-        loadColumns(mockColumns);
+async function loadBoard(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/ColumnByBoardId?BoardId=${id}`)
+        if(!response.ok) {
+            throw new Error("Erro ao carregar colunas");
+        }
+        const columns = await response.json();
+        populateColumns(columns);
+    } catch (error) {
+        console.error("Erro ao carregar colunas:", error);
     }
 }
 
-// Inicialização
-loadBoards();
+// Carregar Colunas e Tarefas
+function populateColumns(columns) {
+
+    boardLayout.innerHTML = ""; 
+
+    columns.forEach((column) => {
+
+        const columnItem = document.createElement("article");
+        columnItem.className = "column-item";
+
+        const columnHeader = document.createElement("header");
+        columnHeader.className = "column-header";
+        columnHeader.innerHTML = `<h5>${column.Name}</h5>`;
+
+        const columnBody = document.createElement("div");
+        columnBody.className = "column-body";
+        columnBody.id = `tasks-${column.Id}`;
+
+
+        columnItem.appendChild(columnHeader);
+        columnItem.appendChild(columnBody);
+
+
+        boardLayout.appendChild(columnItem);
+
+        fetchTasksByColumn(column.Id).then((res)=>{
+            addTasksToColumn(column.Id, res)
+        });
+
+
+    });
+}
+
+function fetchTasksByColumn(columnId) {
+    const endpoint = `${API_BASE_URL}/TaskBoard_CS/rest/TaskBoard/TasksByColumnId?ColumnId=${columnId}`;
+    return fetch(endpoint)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar tasks para ColumnId ${columnId}: ${response.status}`);
+            }
+            return response.json();
+        })
+        .catch((error) => {
+            console.error(error);
+            return [];
+        });
+}
+
+function loadUserName() {
+    const userName = getFromLocalStorage("user");
+    console.log(userName)
+    if (userName.name) {
+        userNameSpan.textContent = `Olá, ${userName.name.split(' ')[0]}`;
+    } else {
+        userNameSpan.textContent = "Usuário não identificado";
+    }
+}
+
+logoutButton.addEventListener("click", () => {
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+});
+
+
+function init() {
+    loadUserName();
+    loadBoards();
+}
+
+init();
